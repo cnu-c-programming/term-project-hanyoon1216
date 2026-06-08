@@ -1,24 +1,36 @@
 #include <stdio.h>
+#include <string.h>
 #include "student.h"
+#include "file_io.h"
+#include "command.h"
 
 int main(void) {
     Student* head = NULL;
+    ShellContext context;
+    char line[256];
 
-    add_student(&head, 1, "Alice", 90);
-    add_student(&head, 2, "Bob", 85);
-    add_student(&head, 3, "Charlie", 95);
+    context.csv_filename = "students.csv";
 
-    list_students(head);
+    if (load_csv(context.csv_filename, &head) < 0) {
+        printf("Failed to load CSV.\n");
+        return 1;
+    }
 
-    printf("Count: %d\n", count_students(head));
-    printf("Sum: %d\n", get_sum_score(head));
-    printf("Max: %d\n", get_max_score(head));
-    printf("Min: %d\n", get_min_score(head));
+    printf("Type commands.\n");
 
-    update_student(head, 2, 100);
-    delete_student(&head, 1);
+    while (1) {
+        printf("test: ");
 
-    list_students(head);
+        if (fgets(line, sizeof(line), stdin) == NULL) {
+            break;
+        }
+
+        line[strcspn(line, "\n")] = '\0';
+
+        if (execute_command(line, &head, &context) == SHELL_EXIT) {
+            break;
+        }
+    }
 
     free_students(head);
 
