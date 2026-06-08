@@ -170,13 +170,40 @@ ShellResult handle_update(char* args, Student** head, ShellContext* context) {
 }
 
 ShellResult handle_find(char* args, Student** head, ShellContext* context) {
-    (void)args;
-    (void)head;
+    int id;
+    Student* target;
+
     (void)context;
 
-    printf("find command is not implemented yet.\n");
+    if (head == NULL) {
+        printf("Error: invalid argument.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (args == NULL || args[0] == '\0') {
+        printf("Error: missing argument.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
+
+    if (!parse_int_arg(args, &id)) {
+        printf("Error: invalid ID.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    target = find_student(*head, id);
+
+    if (target == NULL) {
+        printf("Error: student not found.\n");
+        return SHELL_ERR_STUDENT_NOT_FOUND;
+    }
+
+    printf("ID: %d\n", target->id);
+    printf("Name: %s\n", target->name);
+    printf("Score: %d\n", target->score);
+
     return SHELL_OK;
 }
+
 
 ShellResult handle_list(char* args, Student** head, ShellContext* context) {
     (void)args;
@@ -191,13 +218,40 @@ ShellResult handle_list(char* args, Student** head, ShellContext* context) {
 }
 
 ShellResult handle_stats(char* args, Student** head, ShellContext* context) {
+    int count;
+    int sum;
+    int max;
+    int min;
+    double average;
+
     (void)args;
-    (void)head;
     (void)context;
 
-    printf("stats command is not implemented yet.\n");
+    if (head == NULL) {
+        printf("Error: invalid argument.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    count = count_students(*head);
+
+    if (count == 0) {
+        printf("No student data available.\n");
+        return SHELL_OK;
+    }
+
+    sum = get_sum_score(*head);
+    max = get_max_score(*head);
+    min = get_min_score(*head);
+    average = (double)sum / count;
+
+    printf("Count: %d\n", count);
+    printf("Average: %.1f\n", average);
+    printf("Max: %d\n", max);
+    printf("Min: %d\n", min);
+
     return SHELL_OK;
 }
+
 
 ShellResult handle_help(char* args, Student** head, ShellContext* context) {
     int i;
