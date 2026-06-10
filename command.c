@@ -125,47 +125,214 @@ ShellResult execute_command(char* line, Student** head, ShellContext* context) {
 }
 
 ShellResult handle_save(char* args, Student** head, ShellContext* context) {
-    (void)args;
-    (void)head;
-    (void)context;
+    int count;
 
-    printf("save command is not implemented yet.\n");
+    (void)args;
+
+    if (head == NULL || context == NULL || context->csv_filename == NULL) {
+        printf("Error: invalid argument.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    count = save_csv(context->csv_filename, *head);
+
+    if (count < 0) {
+        return SHELL_ERR_FILE_WRITE;
+    }
+
+    printf("Saved %d students to %s.\n", count, context->csv_filename);
+
     return SHELL_OK;
 }
 
 ShellResult handle_reload(char* args, Student** head, ShellContext* context) {
-    (void)args;
-    (void)head;
-    (void)context;
+    int count;
 
-    printf("reload command is not implemented yet.\n");
+    (void)args;
+
+    if (head == NULL || context == NULL || context->csv_filename == NULL) {
+        printf("Error: invalid argument.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    count = load_csv(context->csv_filename, head);
+
+    if (count < 0) {
+        return SHELL_ERR_FILE_OPEN;
+    }
+
+    printf("Reloaded %d students from %s.\n", count, context->csv_filename);
+
     return SHELL_OK;
 }
 
 ShellResult handle_add(char* args, Student** head, ShellContext* context) {
-    (void)args;
-    (void)head;
+    char* id_str;
+    char* name;
+    char* score_str;
+    char* extra;
+    int id;
+    int score;
+
     (void)context;
 
-    printf("add command is not implemented yet.\n");
+    if (head == NULL) {
+        printf("Error: invalid argument.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (args == NULL || args[0] == '\0') {
+        printf("Error: missing argument.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
+
+    id_str = strtok(args, " \t");
+    name = strtok(NULL, " \t");
+    score_str = strtok(NULL, " \t");
+    extra = strtok(NULL, " \t");
+
+    if (id_str == NULL || name == NULL || score_str == NULL) {
+        printf("Error: missing argument.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
+
+    if (extra != NULL) {
+        printf("Error: invalid argument.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (!parse_int_arg(id_str, &id)) {
+        printf("Error: invalid ID.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (!parse_int_arg(score_str, &score)) {
+        printf("Error: invalid score.\n");
+        return SHELL_ERR_INVALID_SCORE;
+    }
+
+    if (!is_valid_id(id)) {
+        printf("Error: invalid ID.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (!is_valid_name(name)) {
+        printf("Error: invalid name.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (!is_valid_score(score)) {
+        printf("Error: invalid score.\n");
+        return SHELL_ERR_INVALID_SCORE;
+    }
+
+    if (find_student(*head, id) != NULL) {
+        printf("Error: duplicate ID.\n");
+        return SHELL_ERR_DUPLICATE_STUDENT;
+    }
+
+    if (!add_student(head, id, name, score)) {
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    printf("Student added.\n");
+
     return SHELL_OK;
 }
 
 ShellResult handle_delete(char* args, Student** head, ShellContext* context) {
-    (void)args;
-    (void)head;
+    int id;
+
     (void)context;
 
-    printf("delete command is not implemented yet.\n");
+    if (head == NULL) {
+        printf("Error: invalid argument.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (args == NULL || args[0] == '\0') {
+        printf("Error: missing argument.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
+
+    if (!parse_int_arg(args, &id)) {
+        printf("Error: invalid ID.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (!is_valid_id(id)) {
+        printf("Error: invalid ID.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (!delete_student(head, id)) {
+        return SHELL_ERR_STUDENT_NOT_FOUND;
+    }
+
+    printf("Student deleted.\n");
+
     return SHELL_OK;
 }
 
 ShellResult handle_update(char* args, Student** head, ShellContext* context) {
-    (void)args;
-    (void)head;
+    char* id_str;
+    char* score_str;
+    char* extra;
+    int id;
+    int score;
+
     (void)context;
 
-    printf("update command is not implemented yet.\n");
+    if (head == NULL) {
+        printf("Error: invalid argument.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (args == NULL || args[0] == '\0') {
+        printf("Error: missing argument.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
+
+    id_str = strtok(args, " \t");
+    score_str = strtok(NULL, " \t");
+    extra = strtok(NULL, " \t");
+
+    if (id_str == NULL || score_str == NULL) {
+        printf("Error: missing argument.\n");
+        return SHELL_ERR_MISSING_ARGUMENT;
+    }
+
+    if (extra != NULL) {
+        printf("Error: invalid argument.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (!parse_int_arg(id_str, &id)) {
+        printf("Error: invalid ID.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (!parse_int_arg(score_str, &score)) {
+        printf("Error: invalid score.\n");
+        return SHELL_ERR_INVALID_SCORE;
+    }
+
+    if (!is_valid_id(id)) {
+        printf("Error: invalid ID.\n");
+        return SHELL_ERR_INVALID_ARGUMENT;
+    }
+
+    if (!is_valid_score(score)) {
+        printf("Error: invalid score.\n");
+        return SHELL_ERR_INVALID_SCORE;
+    }
+
+    if (!update_student(*head, id, score)) {
+        return SHELL_ERR_STUDENT_NOT_FOUND;
+    }
+
+    printf("Student updated.\n");
+
     return SHELL_OK;
 }
 
@@ -203,7 +370,6 @@ ShellResult handle_find(char* args, Student** head, ShellContext* context) {
 
     return SHELL_OK;
 }
-
 
 ShellResult handle_list(char* args, Student** head, ShellContext* context) {
     (void)args;
@@ -251,7 +417,6 @@ ShellResult handle_stats(char* args, Student** head, ShellContext* context) {
 
     return SHELL_OK;
 }
-
 
 ShellResult handle_help(char* args, Student** head, ShellContext* context) {
     int i;
