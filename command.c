@@ -5,6 +5,14 @@
 #include "command.h"
 #include "file_io.h"
 
+#if !defined(ADMIN_MODE) && !defined(CLIENT_MODE)
+#error "Either ADMIN_MODE or CLIENT_MODE must be defined"
+#endif
+
+#if defined(ADMIN_MODE) && defined(CLIENT_MODE)
+#error "Only one of ADMIN_MODE or CLIENT_MODE can be defined"
+#endif
+
 #define TOKEN_SIZE 64
 
 static void trim(char* str);
